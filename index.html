@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>원불교 열반인 약력 자동작성기</title>
+<meta name="description" content="원불교 열반인 기초조사서를 입력하면 봉독용 약력을 자동으로 작성합니다.">
+<style>
+  :root{color-scheme:light;
+    --ink:#2b2b2b; --sub:#6b6b6b; --line:#e3ded3; --bg:#f6f3ec;
+    --accent:#7a5c2e; --accent2:#b8975a; --card:#fffdf8; --focus:#c9a46a;}
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"Malgun Gothic","맑은 고딕",AppleSDGothicNeo,sans-serif;line-height:1.6;}
+  header{background:linear-gradient(135deg,#4a3a1e,#7a5c2e);color:#fff;padding:22px 24px;}
+  header h1{margin:0;font-size:21px;letter-spacing:.5px;}
+  header p{margin:6px 0 0;font-size:13px;opacity:.88;}
+  .wrap{max-width:1180px;margin:0 auto;padding:20px;display:grid;
+    grid-template-columns:1fr 1fr;gap:20px;}
+  @media(max-width:900px){.wrap{grid-template-columns:1fr;}}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:18px;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+  .panel h2{margin:0 0 4px;font-size:16px;color:var(--accent);}
+  .panel .hint{font-size:12px;color:var(--sub);margin:0 0 14px;}
+  fieldset{border:1px solid var(--line);border-radius:9px;padding:12px 14px 4px;margin:0 0 14px;}
+  legend{font-size:13px;font-weight:700;color:#fff;background:var(--accent);
+    padding:3px 10px;border-radius:5px;}
+  .row{display:flex;gap:10px;flex-wrap:wrap;}
+  .fld{flex:1;min-width:120px;margin-bottom:10px;}
+  .fld.full{flex-basis:100%;}
+  label{display:block;font-size:12px;color:var(--sub);margin-bottom:3px;}
+  .ref{color:var(--accent2);font-size:10.5px;}
+  input,select,textarea{width:100%;padding:7px 9px;border:1px solid var(--line);
+    border-radius:7px;font-size:14px;font-family:inherit;background:#fff;color:var(--ink);}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--focus);
+    box-shadow:0 0 0 2px rgba(201,164,106,.25);}
+  textarea{resize:vertical;min-height:60px;}
+  .computed{font-size:12px;color:var(--accent);background:#f3ecdd;border-radius:6px;
+    padding:6px 9px;margin-top:2px;}
+  .career-item,.child-item{display:flex;gap:8px;margin-bottom:8px;align-items:flex-start;}
+  .career-item input.yr{flex:0 0 92px;}
+  .career-item input.desc{flex:1;}
+  .child-item .cname{flex:1;}
+  .child-item .crel{flex:0 0 76px;}
+  .child-item .cjob{flex:1.3;}
+  .btn{cursor:pointer;border:none;border-radius:7px;padding:8px 14px;font-size:13px;
+    font-family:inherit;font-weight:600;transition:.15s;}
+  .btn-mini{background:#efe7d6;color:var(--accent);padding:5px 10px;font-size:12px;}
+  .btn-mini:hover{background:#e3d6bd;}
+  .btn-del{background:#f3e0dd;color:#9a4b3f;flex:0 0 auto;padding:7px 10px;}
+  .btn-primary{background:var(--accent);color:#fff;font-size:15px;padding:12px 20px;width:100%;}
+  .btn-primary:hover{background:#63491f;}
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+  .toolbar .btn{background:#efe7d6;color:var(--accent);}
+  .toolbar .btn:hover{background:#e3d6bd;}
+  #output{white-space:pre-wrap;background:#fff;border:1px solid var(--line);border-radius:9px;
+    padding:22px 26px;min-height:420px;font-size:15px;line-height:2.05;color:#222;}
+  #output:focus{outline:none;border-color:var(--focus);}
+  .doc-title{text-align:center;font-size:19px;font-weight:800;margin:0 0 4px;}
+  .doc-sub{text-align:center;font-size:14px;color:#555;margin:0 0 18px;}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:#2b2b2b;color:#fff;padding:10px 20px;border-radius:22px;font-size:13px;
+    opacity:0;pointer-events:none;transition:.3s;z-index:99;}
+  .toast.show{opacity:1;}
+  .foot{grid-column:1/-1;text-align:center;font-size:12px;color:var(--sub);padding:6px 0 20px;}
+  @media print{
+    body{background:#fff;} header,.input-panel,.toolbar,.foot{display:none!important;}
+    .wrap{display:block;padding:0;max-width:none;}
+    .output-panel{border:none;box-shadow:none;padding:0;}
+    #output{border:none;padding:0;font-size:15pt;}
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>원불교 열반인 약력 자동작성기</h1>
+  <p>「약력 기초조사서」와 같은 순서로 입력하면 원기·세수가 자동 계산되고, 대중 봉독용 존칭체 약력이 자연스러운 문단으로 작성됩니다. 모든 처리는 이 브라우저 안에서만 이루어집니다. <span class="ref">(◦ 표시는 기록 보관용으로, 약력 본문에는 자동 반영되지 않습니다.)</span></p>
+</header>
+
+<div class="wrap">
+  <div class="panel input-panel">
+    <h2>기초조사서 입력</h2>
+    <p class="hint">조사서 항목 순서 그대로입니다. 아는 항목만 채우셔도 됩니다. 연도는 서기로 입력하면 원기로 자동 변환됩니다.</p>
+
+    <fieldset>
+      <legend>Ⅰ. 기본 정보</legend>
+      <div class="row">
+        <div class="fld"><label>법명</label><input id="beopmyeong" placeholder="법명"></div>
+        <div class="fld"><label>법호 (예: 大山 / 대산)</label><input id="beopho" placeholder="법호"></div>
+      </div>
+      <div class="row">
+        <div class="fld"><label>속명(성명)</label><input id="name" placeholder="속명"></div>
+        <div class="fld"><label>존칭 <span class="ref">(전무출신/재가에 따라 자동)</span></label>
+          <select id="honor"></select>
+        </div>
+      </div>
+      <div class="row">
+        <div class="fld"><label>전무출신(출가) 여부</label>
+          <select id="isMonastic"><option value="yes">전무출신(출가 교역자)</option><option value="no">재가 교도</option></select>
+        </div>
+        <div class="fld"><label>성별</label>
+          <select id="gender"><option value="">선택</option><option value="남">남</option><option value="여">여</option></select>
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Ⅱ. 가계 · 성장</legend>
+      <div class="row">
+        <div class="fld"><label>부친 성함</label><input id="fatherName" placeholder="부친"></div>
+        <div class="fld"><label>모친 성함</label><input id="motherName" placeholder="모친"></div>
+      </div>
+      <div class="row">
+        <div class="fld"><label>부친 직업 <span class="ref">◦</span></label><input id="fatherJob" placeholder="부친 직업"></div>
+        <div class="fld"><label>모친 직업 <span class="ref">◦</span></label><input id="motherJob" placeholder="모친 직업"></div>
+      </div>
+      <div class="fld full"><label>부모님 성격 <span class="ref">◦</span></label><input id="parentChar" placeholder="부모님 성격"></div>
+      <div class="fld full"><label>가족 관계 (형제 서열, 예: 2남 1녀 중 장남)</label><input id="siblingOrder" placeholder="예: 2남 1녀 중 장남"></div>
+      <div class="row">
+        <div class="fld"><label>생년월일 (서기)</label><input type="date" id="birth"></div>
+        <div class="fld"><label>출생지</label><input id="birthPlace" placeholder="예: 전남 영광군"></div>
+      </div>
+      <div class="fld full"><label>생장지 <span class="ref">◦</span></label><input id="growPlace" placeholder="자란 곳"></div>
+      <div class="fld computed" id="dateInfo">생년월일·열반일을 입력하면 원기·세수가 자동 계산됩니다. 법랍은 직접 입력합니다.</div>
+      <div class="fld full"><label>어린시절 성격 <span class="ref">◦</span></label><textarea id="childChar" placeholder="어린시절 성격"></textarea></div>
+      <div class="fld full"><label>가정 교육과 사회생활의 성격 <span class="ref">◦</span></label><textarea id="familyEduChar" placeholder="가정교육·사회생활의 성격"></textarea></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Ⅲ. 입교 · 출가</legend>
+      <div class="row">
+        <div class="fld"><label>입교 연도 (서기)</label><input type="number" id="joinYear" placeholder="예: 1955"></div>
+        <div class="fld"><label>입교 교당</label><input id="joinTemple" placeholder="예: 영산성지교당"></div>
+      </div>
+      <div class="fld"><label>인도자 (연원)</label><input id="joinGuide" placeholder="예: 아무개 교무"></div>
+      <div class="row" id="ordBox">
+        <div class="fld"><label>전무출신(출가) 연도 (서기)</label><input type="number" id="ordYear" placeholder="예: 1960"></div>
+        <div class="fld"><label>법랍 (년) — 직접 입력</label><input type="number" id="beoprapInput" placeholder="예: 65"></div>
+      </div>
+      <div class="fld full"><label>종교생활 (신앙 · 수행 · 공덕)</label><textarea id="virtue" placeholder="예: 재임 중 교당 신축과 교화단 조직에 헌신하시고, 평생 무아봉공의 삶을 실천하셨습니다."></textarea></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Ⅳ. 학력 · 경력</legend>
+      <div class="fld full"><label>학력 (초등~최종학력, 쉼표로 구분)</label><textarea id="education" placeholder="예: 원광대학교 원불교학과 졸업, 원불교대학원대학교 수료"></textarea></div>
+      <label>사회경력 · 주요 교단 경력 (연도순)</label>
+      <div id="careerList"></div>
+      <button class="btn btn-mini" onclick="addCareer()">+ 경력 추가</button>
+    </fieldset>
+
+    <fieldset>
+      <legend>Ⅴ. 법위 · 법훈 · 성적</legend>
+      <div class="row">
+        <div class="fld"><label>법위</label>
+          <select id="beopwi">
+            <option value="">선택</option><option>보통급</option><option>특신급</option>
+            <option>법마상전급</option><option>법강항마위</option><option>출가위</option><option>대각여래위</option>
+          </select>
+        </div>
+        <div class="fld"><label>법훈 <span class="ref">(교무=대봉도·종사 / 재가=대호법)</span></label>
+          <select id="beophun"></select>
+        </div>
+      </div>
+      <div class="row">
+        <div class="fld"><label>공부성적</label><input id="study" placeholder="예: 정특등"></div>
+        <div class="fld"><label>사업성적</label><input id="business" placeholder="예: 정특등"></div>
+        <div class="fld"><label>원성적</label><input id="wonseong" placeholder="예: 정특등"></div>
+      </div>
+      <div class="fld"><label>좌위 (예: 제1좌위)</label><input id="jwawi" placeholder="예: 제1좌위"></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Ⅵ. 가족 사항</legend>
+      <div class="row">
+        <div class="fld"><label>결혼 당시 나이</label><input id="marryAge" placeholder="예: 25"></div>
+        <div class="fld"><label>결혼 연월일</label><input id="marryDate" placeholder="예: 원기50년 / 1965년 3월"></div>
+      </div>
+      <div class="row">
+        <div class="fld"><label>배우자 이름</label><input id="spouseName" placeholder="배우자 성함"></div>
+        <div class="fld"><label>배우자 성장지 <span class="ref">◦</span></label><input id="spouseGrow" placeholder="배우자 성장지"></div>
+      </div>
+      <label>자녀 (이름 · 아들/딸 · 직업·소개, 여러 명 추가 가능)</label>
+      <div id="childList"></div>
+      <button class="btn btn-mini" onclick="addChild()">+ 자녀 추가</button>
+    </fieldset>
+
+    <fieldset>
+      <legend>Ⅶ. 열반 사항</legend>
+      <div class="row">
+        <div class="fld"><label>열반 연월일 (서기)</label><input type="date" id="death"></div>
+        <div class="fld"><label>열반 장소</label><input id="deathPlace" placeholder="예: 익산 원광효도의집"></div>
+      </div>
+      <p class="hint" style="margin:2px 0 0">세수(향년)는 생년월일·열반일로 자동 계산됩니다.</p>
+    </fieldset>
+
+    <fieldset>
+      <legend>Ⅷ. 기타</legend>
+      <div class="fld full"><label>좌우명이나 추가할 사항 <span class="ref">◦</span></label><textarea id="motto" placeholder="좌우명·추가 사항"></textarea></div>
+      <div class="fld full"><label>맺음말 / 추모사 (비우면 기본 추모문이 들어갑니다)</label><textarea id="closing" placeholder="맺음말"></textarea></div>
+    </fieldset>
+
+    <button class="btn btn-primary" style="background:#3d6a4f" onclick="buildPrompt()">AI 프롬프트 만들기 (ChatGPT·제미나이·클로드용)</button>
+    <p class="hint" style="text-align:center;margin:7px 0 0">생성된 프롬프트를 <b>복사</b>해 ChatGPT·제미나이·클로드에 붙여넣으면 감동적인 약력이 작성됩니다.</p>
+    <button class="btn btn-primary" style="margin-top:12px;background:#efe7d6;color:var(--accent)" onclick="generate()">또는 여기서 바로 초안 생성 (AI 없이)</button>
+    <p class="hint" style="text-align:center;margin:7px 0 0">초안은 다시 누르면 같은 내용을 다른 표현으로 새로 써 드립니다.</p>
+  </div>
+
+  <div class="panel output-panel">
+    <h2>생성된 약력</h2>
+    <p class="hint">아래 내용은 직접 수정할 수 있습니다. 수정 후 복사·인쇄·저장하세요.</p>
+    <div class="toolbar">
+      <button class="btn" onclick="copyOut()">복사</button>
+      <button class="btn" onclick="window.print()">인쇄 / PDF</button>
+      <button class="btn" onclick="downloadDoc()">Word(.doc) 저장</button>
+      <button class="btn" onclick="downloadTxt()">텍스트 저장</button>
+      <button class="btn" onclick="saveJson()">입력내용 저장</button>
+      <button class="btn" onclick="document.getElementById('loadFile').click()">불러오기</button>
+      <input type="file" id="loadFile" accept=".json" style="display:none" onchange="loadJson(event)">
+    </div>
+    <div id="output" contenteditable="true"><span style="color:#999">좌측에 정보를 입력하고 <b>약력 생성하기</b>를 누르면 이곳에 약력이 나타납니다.</span></div>
+  </div>
+
+  <div class="foot">원불교 열반인 약력 자동작성기 · 원기 = 서기 − 1915 · 모든 처리는 사용자 브라우저 안에서만 이루어집니다</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const WB=1915;
+function wongiLabel(y){if(!y)return null;const w=y-WB;if(w>=1)return `원기 ${w}년(${y})`;return `서기 ${y}년(원기전 ${1916-y}년)`;}
+function batchim(s){if(!s)return false;const c=s.charCodeAt(s.length-1);if(c<0xAC00||c>0xD7A3)return false;return (c-0xAC00)%28!==0;}
+function jongIsL(s){const c=s.charCodeAt(s.length-1);if(c<0xAC00||c>0xD7A3)return false;return (c-0xAC00)%28===8;}
+function josaRo(s){if(!s)return s;return s+((!batchim(s)||jongIsL(s))?"로":"으로");}
+function josaEB(s){if(!s)return s;return s+(batchim(s)?"을":"를");}
+function josaIGa(s){if(!s)return s;return s+(batchim(s)?"이":"가");}
+function yearOf(d){return d?parseInt(d.slice(0,4)):null;}
+function fmtDate(d){if(!d)return null;const[y,m,dd]=d.split("-").map(Number);return{y,m,d:dd,text:`${m}월 ${dd}일`};}
+
+function addCareer(yr="",desc=""){const div=document.createElement("div");div.className="career-item";
+  div.innerHTML=`<input class="yr" placeholder="서기 연도" value="${yr}"><input class="desc" placeholder="경력 내용 (예: 서울교당 교무 역임)" value="${desc}"><button class="btn btn-del" onclick="this.parentNode.remove()">×</button>`;
+  $("careerList").appendChild(div);}
+function addChild(name="",rel="아들",job=""){const div=document.createElement("div");div.className="child-item";
+  div.innerHTML=`<input class="cname" placeholder="이름" value="${name}"><select class="crel"><option${rel==="아들"?" selected":""}>아들</option><option${rel==="딸"?" selected":""}>딸</option></select><input class="cjob" placeholder="직업·소개" value="${job}"><button class="btn btn-del" onclick="this.parentNode.remove()">×</button>`;
+  $("childList").appendChild(div);}
+
+function updateComputed(){
+  const by=yearOf($("birth").value),dy=yearOf($("death").value);
+  let p=[];
+  if(by)p.push(`출생 ${wongiLabel(by)}`);
+  if(dy)p.push(`열반 ${wongiLabel(dy)}`);
+  if(by&&dy)p.push(`세수 ${dy-by+1}세`);
+  $("dateInfo").textContent=p.length?p.join("  ·  "):"생년월일·열반일을 입력하면 원기·세수가 자동 계산됩니다. 법랍은 직접 입력합니다.";
+}
+["birth","death"].forEach(id=>$(id).addEventListener("input",updateComputed));
+
+// 재가/출가에 따른 존칭·법훈 선택지
+const ROLE={
+  yes:{honor:[{t:"교무",v:"교무"},{t:"원로교무",v:"원로교무"},{t:"종사",v:"종사"},{t:"대봉도",v:"대봉도"},{t:"정사",v:"정사"},{t:"(존칭 없음)",v:""}],
+       hun:[{t:"(없음)",v:""},{t:"대봉도",v:"대봉도"},{t:"종사",v:"종사"}]},
+  no:{honor:[{t:"교도",v:"교도"},{t:"대호법",v:"대호법"},{t:"거사",v:"거사"},{t:"장로",v:"장로"},{t:"(존칭 없음)",v:""}],
+      hun:[{t:"(없음)",v:""},{t:"대호법",v:"대호법"}]}
+};
+function fillSel(sel,list,keep){
+  sel.innerHTML=list.map(o=>`<option value="${o.v}">${o.t}</option>`).join("");
+  const vals=list.map(o=>o.v);
+  sel.value=(keep!=null&&vals.includes(keep))?keep:list[0].v;
+}
+function updateRole(){
+  const r=$("isMonastic").value==="yes"?ROLE.yes:ROLE.no;
+  fillSel($("honor"),r.honor,$("honor").value);
+  fillSel($("beophun"),r.hun,$("beophun").value);
+  const ob=$("ordBox");if(ob)ob.style.display=($("isMonastic").value==="yes")?"":"none";
+}
+$("isMonastic").addEventListener("change",updateRole);
+
+function subjectName(){
+  const bh=$("beopho").value.trim(),bm=$("beopmyeong").value.trim(),nm=$("name").value.trim(),hon=$("honor").value.trim();
+  let core=[bh,(bm||nm)].filter(Boolean).join(" ");if(!core)core=nm||bm||"고인";
+  return (core+(hon?" "+hon:"")).trim();
+}
+function collectData(){
+  const children=[...document.querySelectorAll("#childList .child-item")].map(it=>({
+    name:it.querySelector(".cname").value.trim(),rel:it.querySelector(".crel").value,job:it.querySelector(".cjob").value.trim()
+  })).filter(c=>c.name||c.job);
+  const son=children.filter(c=>c.rel==="아들").length, dau=children.filter(c=>c.rel==="딸").length;
+  let childStr="";
+  if(son&&dau)childStr=`${son}남 ${dau}녀`;else if(son)childStr=`${son}남`;else if(dau)childStr=`${dau}녀`;
+  return {
+    honor:$("honor").value.trim(),mon:$("isMonastic").value==="yes",
+    birth:fmtDate($("birth").value),death:fmtDate($("death").value),
+    deathPlace:$("deathPlace").value.trim(),birthPlace:$("birthPlace").value.trim(),
+    father:$("fatherName").value.trim(),mother:$("motherName").value.trim(),sib:$("siblingOrder").value.trim(),
+    joinYear:parseInt($("joinYear").value)||null,joinTemple:$("joinTemple").value.trim(),
+    joinGuide:$("joinGuide").value.trim(),ordYear:parseInt($("ordYear").value)||null,
+    beoprap:parseInt($("beoprapInput").value)||null,
+    edu:$("education").value.trim(),beopwi:$("beopwi").value.trim(),beophun:$("beophun").value.trim(),
+    study:$("study").value.trim(),business:$("business").value.trim(),wonseong:$("wonseong").value.trim(),jwawi:$("jwawi").value.trim(),
+    virtue:$("virtue").value.trim(),closing:$("closing").value.trim(),
+    marryAge:$("marryAge").value.trim(),marryDate:$("marryDate").value.trim(),
+    spouseName:$("spouseName").value.trim(),children:children,childStr:childStr,
+    careers:[...document.querySelectorAll("#careerList .career-item")].map(it=>({yr:parseInt(it.querySelector(".yr").value)||null,d:it.querySelector(".desc").value.trim()})).filter(c=>c.d)
+  };
+}
+
+let genSeq=0;
+function generate(){
+  genSeq++;
+  const g=collectData();const subj=subjectName();const wg=y=>wongiLabel(y);
+  const by=g.birth?g.birth.y:null,dy=g.death?g.death.y:null;
+  const sesu=(by&&dy)?dy-by+1:null;
+  const beoprap=(g.mon&&g.beoprap)?g.beoprap:null;
+  const pick=(arr,salt)=>arr[(genSeq-1+(salt||0))%arr.length];
+
+  let head=[];
+  if(sesu)head.push(`세수 ${sesu}세`);
+  if(beoprap)head.push(`법랍 ${beoprap}년`);
+  if(g.beopwi)head.push(`법위 ${g.beopwi}`);
+  if(g.beophun)head.push(`법훈 ${g.beophun}`);
+
+  // ── 문단 1: 생애 (연결어로 자연스럽게 이어붙임) ──
+  const life=[]; // {mid, end}
+  if(by){
+    let b=`${subj}께서는 ${wg(by)} ${g.birth.text} `;
+    if(g.birthPlace)b+=`${g.birthPlace}에서 `;
+    const pp=[g.father?`부친 ${g.father}`:"",g.mother?`모친 ${g.mother}`:""].filter(Boolean);
+    if(pp.length){b+=pp.join(", ")+`의 `;if(g.sib)b+=`${josaRo(g.sib)} `;}
+    else if(g.sib){b+=`${josaRo(g.sib)} `;}
+    life.push({mid:b+"태어나시어,",end:b+"태어나셨습니다."});
+  }
+  if(g.joinYear||g.joinTemple){
+    let b=g.joinYear?`${wg(g.joinYear)} `:"";
+    if(g.joinGuide)b+=`${g.joinGuide}의 연원으로 `;
+    if(g.joinTemple)b+=`${g.joinTemple}에서 `;
+    life.push({mid:b+"입교하시어 일원대도(一圓大道)에 귀의하셨으며,",end:b+"입교하시어 일원대도(一圓大道)에 귀의하셨습니다."});
+  }
+  if(g.mon){
+    if(g.ordYear){
+      const b=`${wg(g.ordYear)} 전무출신을 서원하고 출가하시어 `;
+      life.push({mid:b+"일생을 교화와 제생의세(濟生醫世)에 바치시는 한편,",end:b+"일생을 오로지 교화와 제생의세(濟生醫世)에 바치셨습니다."});
+    }else{
+      life.push({mid:"전무출신으로 출가하시어 평생을 교화에 바치시는 한편,",end:"전무출신으로 출가하시어 평생을 교화에 바치셨습니다."});
+    }
+  }else{
+    life.push({mid:"재가교도로서 생활 속에서 신앙과 수행을 병진하시며 교화에 힘쓰시는 한편,",end:"재가교도로서 생활 속에서 신앙과 수행을 병진하시며 교화에 힘쓰셨습니다."});
+  }
+  if(g.edu){
+    life.push({mid:`${g.edu} 등으로 교리와 수행의 바탕을 닦으신 뒤,`,end:`${g.edu} 등으로 교리와 수행의 바탕을 닦으셨습니다.`});
+  }
+  if(g.careers.length){
+    const cs=[...g.careers].sort((a,b)=>(a.yr||9999)-(b.yr||9999)).map(c=>c.yr?`${wg(c.yr)} ${c.d}`:c.d).join(", ");
+    life.push({mid:`이후 ${cs} 등을 두루 역임하시며 교단 발전에 헌신하셨으며,`,end:`이후 ${cs} 등을 두루 역임하시며 교단 발전에 헌신하셨습니다.`});
+  }
+  if(g.marryAge||g.marryDate||g.spouseName){
+    let pre="";
+    if(g.marryAge&&g.marryDate)pre=`${g.marryDate} ${g.marryAge}세 되던 해 `;
+    else if(g.marryDate)pre=`${g.marryDate} `;
+    else if(g.marryAge)pre=`${g.marryAge}세 되던 해 `;
+    const sp=g.spouseName?`${g.spouseName} 님과 `:"";
+    life.push({mid:`${pre}${sp}가정을 이루시고,`,end:`${pre}${sp}가정을 이루셨습니다.`});
+  }
+
+  const paras=[];
+  if(life.length){
+    const chunks=[];for(let i=0;i<life.length;i+=3)chunks.push(life.slice(i,i+3));
+    let sents=chunks.map(ch=>ch.map((c,i)=>i===ch.length-1?c.end:c.mid).join(" "));
+    let txt=sents.join(" ");
+    if(!by)txt=`${subj}께서는 `+txt;
+    paras.push(txt);
+  }
+
+  // ── 문단 2: 공덕(종교생활) ──
+  if(g.virtue)paras.push(g.virtue);
+
+  // ── 문단 3: 열반 + 유족 (한 문단으로 묶음) ──
+  const closeP=[];
+  if(dy){
+    let s=`${subj}께서는 ${wg(dy)} ${g.death.text} `;
+    if(g.deathPlace)s+=`${g.deathPlace}에서 `;
+    let t=[];if(sesu)t.push(`세수 ${sesu}세`);if(beoprap)t.push(`법랍 ${beoprap}년`);
+    if(t.length){const tail=t.join(", ");s+=`열반에 드시니, ${tail}${batchim(tail)?"이었습니다.":"였습니다."}`;}
+    else s+="고요히 세연(世緣)을 거두시고 열반에 드셨습니다.";
+    closeP.push(s);
+  }
+  const famCore=[];
+  if(g.spouseName)famCore.push(`배우자 ${g.spouseName} 님`);
+  if(g.childStr)famCore.push(g.childStr);
+  if(famCore.length){const fs=famCore.join("과 ");closeP.push(`유족으로 ${josaEB(fs)} 두셨습니다.`);}
+  const detail=g.children.filter(c=>c.name).map(c=>`${c.name}${c.job?`(${c.job})`:""}`).join(", ");
+  if(detail)closeP.push(`자녀로는 ${josaIGa(detail)} 있습니다.`);
+  if(closeP.length)paras.push(closeP.join(" "));
+
+  // ── 문단 4: 맺음말 ──
+  if(g.closing)paras.push(g.closing);
+  else if(dy)paras.push(pick([
+    "교단은 고인의 법은(法恩)과 공덕을 길이 기리며, 삼가 명복을 빕니다.",
+    "교단은 고인께서 남기신 공덕을 오래도록 기리며, 삼가 명복을 빕니다.",
+    "고인의 법력과 공덕을 기리며, 삼가 명복을 빕니다."],7));
+
+  // 맨 마지막: 교단 사정(査定) 결과 — 공부성적·사업성적·원성적 + 좌위
+  {
+    const grades=[];
+    if(g.study)grades.push(`공부성적 ${g.study}`);
+    if(g.business)grades.push(`사업성적 ${g.business}`);
+    if(g.wonseong)grades.push(`원성적 ${g.wonseong}`);
+    if(grades.length||g.jwawi){
+      let s="평생을 일원대도의 정법에 귀의하시어 사심 없는 공도 헌신의 삶을 채우시니, 교단 사정(査定) 결과 ";
+      const top=g.jwawi&&/제?\s*1|최고/.test(g.jwawi);
+      const jw=g.jwawi?`${top?"교단 최고의 영예인 ":""}${g.jwawi}에 오르시었습니다.`:"";
+      const gstr=grades.join(", ");
+      const core=gstr.replace(/\s*[（(][^）)]*[）)]\s*$/,""); // 한자 괄호 제거 후 조사 판별
+      const ro=(!batchim(core)||jongIsL(core))?"로":"으로";
+      const eul=batchim(core)?"을":"를";
+      if(grades.length&&g.jwawi)s+=`${gstr}${ro} ${jw}`;
+      else if(grades.length)s+=`${gstr}${eul} 받으셨습니다.`;
+      else s+=jw;
+      paras.push(s);
+    }
+  }
+
+  let html=`<div class="doc-title">故 ${subj} 약력</div>`;
+  if(head.length)html+=`<div class="doc-sub">${head.join("  ·  ")}</div>`;
+  html+=paras.map(x=>`<div style="margin-bottom:16px;text-indent:1em">${escapeHtml(x)}</div>`).join("");
+  $("output").innerHTML=html;
+  toast(genSeq===1?"약력이 생성되었습니다":"다른 표현으로 다시 작성했습니다");
+}
+function escapeHtml(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function toast(m){const t=$("toast");t.textContent=m;t.classList.add("show");clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove("show"),2000);}
+
+function buildPrompt(){
+  const g=collectData();const subj=subjectName();const v=id=>$(id).value.trim();
+  const by=g.birth?g.birth.y:null,dy=g.death?g.death.y:null;
+  const sesu=(by&&dy)?dy-by+1:null;
+  const yr=s=>{const n=parseInt(s);return n?wongiLabel(n):"";};
+  let D=[];
+  D.push(`- 법명: ${v('beopmyeong')||'-'} / 법호: ${v('beopho')||'-'} / 속명: ${v('name')||'-'} / 존칭: ${v('honor')||'-'}`);
+  D.push(`- 구분: ${g.mon?'전무출신(출가 교역자)':'재가 교도'}${v('gender')?' / 성별: '+v('gender'):''}`);
+  D.push(`- 생년월일: ${g.birth?wongiLabel(by)+' '+g.birth.text:'-'}${v('birthPlace')?' / 출생지: '+v('birthPlace'):''}${v('growPlace')?' / 생장지: '+v('growPlace'):''}`);
+  D.push(`- 부친: ${v('fatherName')||'-'}${v('fatherJob')?'(직업 '+v('fatherJob')+')':''} / 모친: ${v('motherName')||'-'}${v('motherJob')?'(직업 '+v('motherJob')+')':''}`);
+  if(v('parentChar'))D.push(`- 부모님 성격: ${v('parentChar')}`);
+  if(v('siblingOrder'))D.push(`- 형제 관계: ${v('siblingOrder')}`);
+  if(v('childChar'))D.push(`- 어린시절 성격: ${v('childChar')}`);
+  if(v('familyEduChar'))D.push(`- 가정교육·사회생활의 성격: ${v('familyEduChar')}`);
+  D.push(`- 입교: ${yr(v('joinYear'))||'-'}${v('joinTemple')?' / 교당: '+v('joinTemple'):''}${v('joinGuide')?' / 인도자(연원): '+v('joinGuide'):''}`);
+  if(g.mon)D.push(`- 출가: ${yr(v('ordYear'))||'-'}${v('beoprapInput')?' / 법랍: '+v('beoprapInput')+'년':''}`);
+  if(v('education'))D.push(`- 학력: ${v('education')}`);
+  if(g.careers.length)D.push(`- 주요 경력: ${g.careers.map(c=>(c.yr?wongiLabel(c.yr)+' ':'')+c.d).join(' / ')}`);
+  const bw=[v('beopwi')&&'법위 '+v('beopwi'),v('beophun')&&'법훈·법계 '+v('beophun'),v('study')&&'공부성적 '+v('study'),v('business')&&'사업성적 '+v('business'),v('wonseong')&&'원성적 '+v('wonseong'),v('jwawi')&&'좌위 '+v('jwawi')].filter(Boolean);
+  if(bw.length)D.push(`- 법위·법훈·성적·좌위: ${bw.join(' / ')}`);
+  const marr=[v('marryDate'),v('marryAge')&&v('marryAge')+'세'].filter(Boolean).join(' ');
+  if(marr||v('spouseName'))D.push(`- 결혼: ${marr||'-'}${v('spouseName')?' / 배우자: '+v('spouseName'):''}${v('spouseGrow')?'(성장지 '+v('spouseGrow')+')':''}`);
+  if(g.children.length)D.push(`- 자녀: ${g.children.map(c=>`${c.name}(${c.rel}${c.job?', '+c.job:''})`).join(' / ')}`);
+  if(v('virtue'))D.push(`- 종교생활·공덕: ${v('virtue')}`);
+  D.push(`- 열반: ${g.death?wongiLabel(dy)+' '+g.death.text:'-'}${v('deathPlace')?' / 장소: '+v('deathPlace'):''}${sesu?' / 세수 '+sesu+'세':''}`);
+  if(v('motto'))D.push(`- 좌우명·추가사항: ${v('motto')}`);
+
+  const prompt=`당신은 원불교 교무입니다. 아래 열반인의 기초조사 자료를 바탕으로, 열반식·천도재에서 대중 앞에 봉독할 「약력」을 작성해 주세요.
+
+[작성 지침]
+1. 대중에게 소리 내어 읽는 존댓말(합쇼체)로, 모든 문장을 '~하셨습니다 / ~이었습니다 / 삼가 명복을 빕니다'처럼 '-습니다'로 끝맺습니다.
+2. 항목을 딱딱하게 나열하지 말고, 듣는 이가 고인의 삶에 관심과 호감을 느끼고 감동하며 이해할 수 있도록 자연스럽고 따뜻하게 이야기하듯 풀어 씁니다.
+3. 문장을 잘게 끊지 말고 연결어로 부드럽게 이어 3~5개 문단으로 구성합니다.
+4. 맨 앞 머리글에는 제목 '故 ○○○ 약력'과 세수·법랍·법위·법훈만 넣습니다. 본문 맨 마지막은 다음 형태의 한 문장으로 마무리합니다 — "평생을 일원대도의 정법에 귀의하시어 사심 없는 공도 헌신의 삶을 채우시니, 교단 사정(査定) 결과 공부성적 ○○, 사업성적 ○○, 원성적 ○○으로 제○좌위(第○座位)에 오르시었습니다." (성적은 반드시 공부성적·사업성적·원성적 순으로 쓰고, 제1좌위이면 "교단 최고의 영예인 제1좌위(第一座位)"로 표현합니다.)
+5. 원불교 용어(법은, 무아봉공, 제생의세, 일원대도, 법계 등)를 자연스럽게 쓰되 '성수(聖壽)'라는 표현은 쓰지 않습니다.
+6. 재가 교도와 전무출신(출가) 교역자의 삶을 구분하여 서술합니다.
+7. 주어진 자료 안에서만 쓰고, 없는 사실은 지어내지 않으며, 빈 항목은 자연스럽게 생략합니다.
+8. 연도는 '원기 ○○년(서기 ○○년)' 형태로 씁니다.
+9. 추모의 말은 '삼가 명복을 빕니다'로 맺고, '삼가 열반을 추모합니다' 같은 표현은 쓰지 않습니다. 그 다음, 맨 마지막 줄에 위 4번의 교단 사정(査定) 결과 문장을 둡니다.
+
+[열반인 기초 자료]
+호칭: ${subj}
+${D.join('\n')}
+
+위 자료로 약력을 작성해 주세요.`;
+  $("output").innerText=prompt;
+  toast("AI 프롬프트가 생성되었습니다. '복사' 후 ChatGPT·제미나이·클로드에 붙여넣으세요");
+}
+function copyOut(){const txt=$("output").innerText;
+  navigator.clipboard.writeText(txt).then(()=>toast("복사되었습니다"))
+  .catch(()=>{const r=document.createRange();r.selectNodeContents($("output"));const s=getSelection();s.removeAllRanges();s.addRange(r);document.execCommand("copy");toast("복사되었습니다");});}
+function fileName(){return "약력_"+(subjectName().replace(/\s+/g,"_")||"약력");}
+function triggerDownload(blob,name){const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);toast("저장되었습니다");}
+function downloadTxt(){triggerDownload(new Blob([$("output").innerText],{type:"text/plain;charset=utf-8"}),fileName()+".txt");}
+function downloadDoc(){const inner=$("output").innerHTML;
+  const html=`<html xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><style>body{font-family:'Malgun Gothic',sans-serif;line-height:2;font-size:12pt;}.doc-title{text-align:center;font-size:16pt;font-weight:bold;margin-bottom:6px;}.doc-sub{text-align:center;font-size:11pt;color:#444;margin-bottom:20px;}</style></head><body>${inner}</body></html>`;
+  triggerDownload(new Blob(['﻿',html],{type:"application/msword"}),fileName()+".doc");}
+function saveJson(){triggerDownload(new Blob([JSON.stringify(collectRaw(),null,2)],{type:"application/json"}),fileName()+"_입력내용.json");}
+function collectRaw(){const o={};
+  ["beopmyeong","beopho","name","honor","isMonastic","gender","fatherName","motherName","fatherJob","motherJob","parentChar","siblingOrder","birth","birthPlace","growPlace","childChar","familyEduChar","joinYear","joinTemple","joinGuide","ordYear","beoprapInput","virtue","education","beopwi","beophun","study","business","wonseong","jwawi","marryAge","marryDate","spouseName","spouseGrow","death","deathPlace","motto","closing"].forEach(id=>o[id]=$(id).value);
+  o.careers=[...document.querySelectorAll("#careerList .career-item")].map(it=>({yr:it.querySelector(".yr").value,d:it.querySelector(".desc").value}));
+  o.children=[...document.querySelectorAll("#childList .child-item")].map(it=>({name:it.querySelector(".cname").value,rel:it.querySelector(".crel").value,job:it.querySelector(".cjob").value}));
+  return o;}
+function loadJson(ev){const f=ev.target.files[0];if(!f)return;const r=new FileReader();
+  r.onload=()=>{try{const o=JSON.parse(r.result);
+    Object.keys(o).forEach(k=>{if($(k)!==null&&typeof o[k]==="string")$(k).value=o[k];});
+    updateRole();
+    if(o.honor!=null)$("honor").value=o.honor;
+    if(o.beophun!=null)$("beophun").value=o.beophun;
+    $("careerList").innerHTML="";(o.careers||[]).forEach(c=>addCareer(c.yr,c.d));
+    $("childList").innerHTML="";(o.children||[]).forEach(c=>addChild(c.name,c.rel,c.job));
+    updateComputed();toast("불러왔습니다");}catch(e){toast("파일을 읽을 수 없습니다");}};
+  r.readAsText(f);ev.target.value="";}
+
+updateRole();addCareer();addCareer();addChild();updateComputed();
+</script>
+</body>
+</html>
