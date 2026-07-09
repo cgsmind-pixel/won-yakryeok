@@ -15,6 +15,9 @@
   header{background:linear-gradient(135deg,#4a3a1e,#7a5c2e);color:#fff;padding:22px 24px;}
   header h1{margin:0;font-size:21px;letter-spacing:.5px;}
   header p{margin:6px 0 0;font-size:13px;opacity:.88;}
+  .dlbar{max-width:1180px;margin:0 auto;padding:14px 20px 0;display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--sub);}
+  .dlbar a.dl{background:#efe7d6;color:var(--accent);text-decoration:none;font-weight:600;padding:7px 13px;border-radius:7px;border:1px solid var(--line);}
+  .dlbar a.dl:hover{background:#e3d6bd;}
   .wrap{max-width:1180px;margin:0 auto;padding:20px;display:grid;
     grid-template-columns:1fr 1fr;gap:20px;}
   @media(max-width:900px){.wrap{grid-template-columns:1fr;}}
@@ -64,7 +67,7 @@
   .toast.show{opacity:1;}
   .foot{grid-column:1/-1;text-align:center;font-size:12px;color:var(--sub);padding:6px 0 20px;}
   @media print{
-    body{background:#fff;} header,.input-panel,.toolbar,.foot{display:none!important;}
+    body{background:#fff;} header,.dlbar,.input-panel,.toolbar,.foot{display:none!important;}
     .wrap{display:block;padding:0;max-width:none;}
     .output-panel{border:none;box-shadow:none;padding:0;}
     #output{border:none;padding:0;font-size:15pt;}
@@ -76,6 +79,12 @@
   <h1>원불교 열반인 약력 자동작성기</h1>
   <p>「약력 기초조사서」와 같은 순서로 입력하면 원기·세수가 자동 계산되고, 대중 봉독용 존칭체 약력이 자연스러운 문단으로 작성됩니다. 모든 처리는 이 브라우저 안에서만 이루어집니다. <span class="ref">(◦ 표시는 기록 보관용으로, 약력 본문에는 자동 반영되지 않습니다.)</span></p>
 </header>
+
+<div class="dlbar">
+  <span>자료 내려받기:</span>
+  <a class="dl" href="guide.docx" download="원불교_열반인_약력_사용안내서.docx">사용안내서 (Word)</a>
+  <a class="dl" href="josaseo.docx" download="원불교_약력_기초조사서.docx">표준 기초조사서 (Word)</a>
+</div>
 
 <div class="wrap">
   <div class="panel input-panel">
@@ -157,7 +166,7 @@
             <option>법마상전급</option><option>법강항마위</option><option>출가위</option><option>대각여래위</option>
           </select>
         </div>
-        <div class="fld"><label>법훈 <span class="ref">(교무=대봉도·종사 / 재가=대호법)</span></label>
+        <div class="fld"><label>법훈</label>
           <select id="beophun"></select>
         </div>
       </div>
