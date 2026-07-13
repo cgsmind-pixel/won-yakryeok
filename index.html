@@ -13,11 +13,20 @@
   body{margin:0;background:var(--bg);color:var(--ink);
     font-family:"Malgun Gothic","맑은 고딕",AppleSDGothicNeo,sans-serif;line-height:1.6;}
   header{background:linear-gradient(135deg,#4a3a1e,#7a5c2e);color:#fff;padding:22px 24px;}
-  header h1{margin:0;font-size:21px;letter-spacing:.5px;}
-  header p{margin:6px 0 0;font-size:13px;opacity:.88;}
-  .dlbar{max-width:1180px;margin:0 auto;padding:14px 20px 0;display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--sub);}
-  .dlbar a.dl{background:#efe7d6;color:var(--accent);text-decoration:none;font-weight:600;padding:7px 13px;border-radius:7px;border:1px solid var(--line);}
+  header h1{margin:0;font-size:clamp(17px,5vw,22px);letter-spacing:.3px;white-space:nowrap;}
+  header p{margin:8px 0 0;font-size:13px;opacity:.88;}
+  .dlbar{max-width:1180px;margin:0 auto;padding:14px 20px 0;text-align:center;}
+  .dlbar .dlbar-label{display:block;font-size:13px;color:var(--sub);font-weight:600;margin-bottom:8px;}
+  .dlbar-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+  .dlbar a.dl{background:#efe7d6;color:var(--accent);text-decoration:none;font-weight:600;padding:8px 14px;border-radius:7px;border:1px solid var(--line);}
   .dlbar a.dl:hover{background:#e3d6bd;}
+  @media(max-width:480px){
+    header{padding:16px 16px;}
+    header p{font-size:12.5px;}
+    .wrap{padding:12px;gap:14px;}
+    .panel{padding:14px;}
+    #output{padding:16px 16px;line-height:1.9;}
+  }
   .wrap{max-width:1180px;margin:0 auto;padding:20px;display:grid;
     grid-template-columns:1fr 1fr;gap:20px;}
   @media(max-width:900px){.wrap{grid-template-columns:1fr;}}
@@ -77,13 +86,15 @@
 <body>
 <header>
   <h1>원불교 열반인 약력 자동작성기</h1>
-  <p>「약력 기초조사서」와 같은 순서로 입력하면 원기·세수가 자동 계산되고, 대중 봉독용 존칭체 약력이 자연스러운 문단으로 작성됩니다. 모든 처리는 이 브라우저 안에서만 이루어집니다. <span class="ref">(◦ 표시는 기록 보관용으로, 약력 본문에는 자동 반영되지 않습니다.)</span></p>
+  <p>「약력 기초조사서」와 같은 순서로 입력하면 원기·세수가 자동 계산되고, 대중 봉독용 존칭체 약력이 자연스러운 문단으로 작성됩니다. 모든 처리는 이 브라우저 안에서만 이루어집니다.</p>
 </header>
 
 <div class="dlbar">
-  <span>자료 내려받기:</span>
-  <a class="dl" href="guide.docx" download="원불교_열반인_약력_사용안내서.docx">사용안내서 (Word)</a>
-  <a class="dl" href="josaseo.docx" download="원불교_약력_기초조사서.docx">표준 기초조사서 (Word)</a>
+  <span class="dlbar-label">자료 내려받기</span>
+  <div class="dlbar-btns">
+    <a class="dl" href="guide.docx" download="원불교_열반인_약력_사용안내서.docx">사용안내서 (Word)</a>
+    <a class="dl" href="josaseo.docx" download="원불교_약력_기초조사서.docx">표준 기초조사서 (Word)</a>
+  </div>
 </div>
 
 <div class="wrap">
@@ -231,7 +242,7 @@
       <button class="btn" onclick="document.getElementById('loadFile').click()">불러오기</button>
       <input type="file" id="loadFile" accept=".json" style="display:none" onchange="loadJson(event)">
     </div>
-    <div id="output" contenteditable="true"><span style="color:#999">좌측에 정보를 입력하고 <b>약력 생성하기</b>를 누르면 이곳에 약력이 나타납니다.</span></div>
+    <div id="output" contenteditable="true"><span style="color:#999">약력 정보를 입력하고 <b>약력 생성하기</b>를 누르면 이곳에 약력이 나타납니다.</span></div>
   </div>
 
   <div class="foot">원불교 열반인 약력 자동작성기 · 원기 = 서기 − 1915 · 모든 처리는 사용자 브라우저 안에서만 이루어집니다</div>
@@ -550,7 +561,7 @@ function resetForm(){
   updateRole();addCareer();addCareer();addChild();updateComputed();
   restoring=false;
   try{localStorage.removeItem(LS_KEY);}catch(e){}
-  $("output").innerHTML='<span style="color:#999">좌측에 정보를 입력하고 <b>약력 생성하기</b>를 누르면 이곳에 약력이 나타납니다.</span>';
+  $("output").innerHTML='<span style="color:#999">약력 정보를 입력하고 <b>약력 생성하기</b>를 누르면 이곳에 약력이 나타납니다.</span>';
   toast("새로 작성 준비 완료");
 }
 document.addEventListener("input",e=>{if(e.target.closest&&e.target.closest(".input-panel"))saveState();});
