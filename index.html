@@ -191,20 +191,12 @@
     </fieldset>
 
     <fieldset>
-      <legend>Ⅴ. 법위 · 법훈 · 성적</legend>
-      <div class="row">
-        <div class="fld"><label>법위</label>
-          <select id="beopwi">
-            <option value="">선택</option><option>보통급</option><option>특신급</option>
-            <option>법마상전급</option><option>법강항마위</option><option>출가위</option><option>대각여래위</option>
-          </select>
-        </div>
-        <div class="fld"><label>법훈</label>
-          <select id="beophun"></select>
-        </div>
+      <legend>Ⅴ. 법훈 · 성적</legend>
+      <div class="fld"><label>법훈</label>
+        <select id="beophun"></select>
       </div>
       <div class="row">
-        <div class="fld"><label>공부성적</label><input id="study" placeholder="예: 정특등"></div>
+        <div class="fld"><label>공부성적</label><input id="study" placeholder="예: 법강항마위"></div>
         <div class="fld"><label>사업성적</label><input id="business" placeholder="예: 정특등"></div>
         <div class="fld"><label>원성적</label><input id="wonseong" placeholder="예: 정특등"></div>
       </div>
@@ -338,7 +330,7 @@ function collectData(){
     joinYear:parseInt($("joinYear").value)||null,joinTemple:$("joinTemple").value.trim(),
     joinGuide:$("joinGuide").value.trim(),ordYear:parseInt($("ordYear").value)||null,
     beoprap:parseInt($("beoprapInput").value)||null,
-    edu:$("education").value.trim(),beopwi:$("beopwi").value.trim(),beophun:$("beophun").value.trim(),
+    edu:$("education").value.trim(),beophun:$("beophun").value.trim(),
     study:$("study").value.trim(),business:$("business").value.trim(),wonseong:$("wonseong").value.trim(),jwawi:$("jwawi").value.trim(),
     virtue:$("virtue").value.trim(),closing:$("closing").value.trim(),
     marryAge:$("marryAge").value.trim(),marryDate:$("marryDate").value.trim(),
@@ -380,7 +372,6 @@ function generate(){
   let head=[];
   if(sesu)head.push(`세수 ${sesu}세`);
   if(beoprap)head.push(`법랍 ${beoprap}년`);
-  if(g.beopwi)head.push(`법위 ${g.beopwi}`);
   if(g.beophun)head.push(`법훈 ${g.beophun}`);
 
   // ── 문단 1: 생애 (연결어로 자연스럽게 이어붙임) ──
@@ -510,7 +501,7 @@ function buildPrompt(){
   if(g.mon)D.push(`- 출가: ${yr(v('ordYear'))||'-'}${v('beoprapInput')?' / 법랍: '+v('beoprapInput')+'년':''}`);
   if(v('education'))D.push(`- 학력: ${v('education')}`);
   if(g.careers.length)D.push(`- 주요 경력: ${g.careers.map(c=>(c.yr?wongiLabel(c.yr)+' ':'')+c.d).join(' / ')}`);
-  const bw=[v('beopwi')&&'법위 '+v('beopwi'),v('beophun')&&'법훈·법계 '+v('beophun'),v('study')&&'공부성적 '+v('study'),v('business')&&'사업성적 '+v('business'),v('wonseong')&&'원성적 '+v('wonseong'),v('jwawi')&&'좌위 '+v('jwawi')].filter(Boolean);
+  const bw=[v('beophun')&&'법훈·법계 '+v('beophun'),v('study')&&'공부성적 '+v('study'),v('business')&&'사업성적 '+v('business'),v('wonseong')&&'원성적 '+v('wonseong'),v('jwawi')&&'좌위 '+v('jwawi')].filter(Boolean);
   if(bw.length)D.push(`- 법위·법훈·성적·좌위: ${bw.join(' / ')}`);
   const marr=[v('marryDate'),v('marryAge')&&v('marryAge')+'세'].filter(Boolean).join(' ');
   if(marr||v('spouseName'))D.push(`- 결혼: ${marr||'-'}${v('spouseName')?' / 배우자: '+v('spouseName'):''}${v('spouseGrow')?'(성장지 '+v('spouseGrow')+')':''}`);
@@ -551,7 +542,7 @@ function downloadDoc(){const inner=$("output").innerHTML;
   triggerDownload(new Blob(['﻿',html],{type:"application/msword"}),fileName()+".doc");}
 function saveJson(){triggerDownload(new Blob([JSON.stringify(collectRaw(),null,2)],{type:"application/json"}),fileName()+"_입력내용.json");}
 function collectRaw(){const o={};
-  ["beopmyeong","beopho","name","honor","isMonastic","gender","fatherName","motherName","fatherJob","motherJob","parentChar","siblingOrder","birth","birthPlace","growPlace","childChar","familyEduChar","joinYear","joinTemple","joinGuide","ordYear","beoprapInput","virtue","education","beopwi","beophun","study","business","wonseong","jwawi","marryAge","marryDate","spouseName","spouseGrow","death","deathPlace","motto","closing"].forEach(id=>o[id]=$(id).value);
+  ["beopmyeong","beopho","name","honor","isMonastic","gender","fatherName","motherName","fatherJob","motherJob","parentChar","siblingOrder","birth","birthPlace","growPlace","childChar","familyEduChar","joinYear","joinTemple","joinGuide","ordYear","beoprapInput","virtue","education","beophun","study","business","wonseong","jwawi","marryAge","marryDate","spouseName","spouseGrow","death","deathPlace","motto","closing"].forEach(id=>o[id]=$(id).value);
   o.careers=[...document.querySelectorAll("#careerList .career-item")].map(it=>({yr:it.querySelector(".yr").value,d:it.querySelector(".desc").value}));
   o.children=[...document.querySelectorAll("#childList .child-item")].map(it=>({name:it.querySelector(".cname").value,rel:it.querySelector(".crel").value,job:it.querySelector(".cjob").value}));
   return o;}
@@ -577,7 +568,7 @@ function resetForm(){
   if(!confirm("입력한 내용을 모두 지우고 새로 작성할까요?"))return;
   restoring=true;
   document.querySelectorAll(".input-panel input, .input-panel textarea").forEach(el=>{if(el.type!=="file")el.value="";});
-  $("isMonastic").selectedIndex=0;$("gender").selectedIndex=0;$("honor").selectedIndex=0;$("beopwi").selectedIndex=0;
+  $("isMonastic").selectedIndex=0;$("gender").selectedIndex=0;$("honor").selectedIndex=0;
   $("careerList").innerHTML="";$("childList").innerHTML="";
   updateRole();addCareer();addCareer();addChild();updateComputed();
   restoring=false;
