@@ -191,10 +191,7 @@
     </fieldset>
 
     <fieldset>
-      <legend>Ⅴ. 법훈 · 성적</legend>
-      <div class="fld"><label>법훈</label>
-        <select id="beophun"></select>
-      </div>
+      <legend>Ⅴ. 성적</legend>
       <div class="row">
         <div class="fld"><label>공부성적</label><input id="study" placeholder="예: 법강항마위"></div>
         <div class="fld"><label>사업성적</label><input id="business" placeholder="예: 정특등"></div>
@@ -304,8 +301,6 @@ function fillSel(sel,list,keep){
   sel.value=(keep!=null&&vals.includes(keep))?keep:list[0].v;
 }
 function updateRole(){
-  const r=$("isMonastic").value==="yes"?ROLE.yes:ROLE.no;
-  fillSel($("beophun"),r.hun,$("beophun").value);
   const ob=$("ordBox");if(ob)ob.style.display=($("isMonastic").value==="yes")?"":"none";
 }
 $("isMonastic").addEventListener("change",updateRole);
@@ -330,7 +325,7 @@ function collectData(){
     joinYear:parseInt($("joinYear").value)||null,joinTemple:$("joinTemple").value.trim(),
     joinGuide:$("joinGuide").value.trim(),ordYear:parseInt($("ordYear").value)||null,
     beoprap:parseInt($("beoprapInput").value)||null,
-    edu:$("education").value.trim(),beophun:$("beophun").value.trim(),
+    edu:$("education").value.trim(),
     study:$("study").value.trim(),business:$("business").value.trim(),wonseong:$("wonseong").value.trim(),jwawi:$("jwawi").value.trim(),
     virtue:$("virtue").value.trim(),closing:$("closing").value.trim(),
     marryAge:$("marryAge").value.trim(),marryDate:$("marryDate").value.trim(),
@@ -372,7 +367,6 @@ function generate(){
   let head=[];
   if(sesu)head.push(`세수 ${sesu}세`);
   if(beoprap)head.push(`법랍 ${beoprap}년`);
-  if(g.beophun)head.push(`법훈 ${g.beophun}`);
 
   // ── 문단 1: 생애 (연결어로 자연스럽게 이어붙임) ──
   const life=[]; // {mid, end}
@@ -501,8 +495,8 @@ function buildPrompt(){
   if(g.mon)D.push(`- 출가: ${yr(v('ordYear'))||'-'}${v('beoprapInput')?' / 법랍: '+v('beoprapInput')+'년':''}`);
   if(v('education'))D.push(`- 학력: ${v('education')}`);
   if(g.careers.length)D.push(`- 주요 경력: ${g.careers.map(c=>(c.yr?wongiLabel(c.yr)+' ':'')+c.d).join(' / ')}`);
-  const bw=[v('beophun')&&'법훈·법계 '+v('beophun'),v('study')&&'공부성적 '+v('study'),v('business')&&'사업성적 '+v('business'),v('wonseong')&&'원성적 '+v('wonseong'),v('jwawi')&&'좌위 '+v('jwawi')].filter(Boolean);
-  if(bw.length)D.push(`- 법위·법훈·성적·좌위: ${bw.join(' / ')}`);
+  const bw=[v('study')&&'공부성적 '+v('study'),v('business')&&'사업성적 '+v('business'),v('wonseong')&&'원성적 '+v('wonseong'),v('jwawi')&&'좌위 '+v('jwawi')].filter(Boolean);
+  if(bw.length)D.push(`- 성적·좌위: ${bw.join(' / ')}`);
   const marr=[v('marryDate'),v('marryAge')&&v('marryAge')+'세'].filter(Boolean).join(' ');
   if(marr||v('spouseName'))D.push(`- 결혼: ${marr||'-'}${v('spouseName')?' / 배우자: '+v('spouseName'):''}${v('spouseGrow')?'(성장지 '+v('spouseGrow')+')':''}`);
   if(g.children.length)D.push(`- 자녀: ${g.children.map(c=>`${c.name}(${c.rel}${c.job?', '+c.job:''})`).join(' / ')}`);
@@ -542,7 +536,7 @@ function downloadDoc(){const inner=$("output").innerHTML;
   triggerDownload(new Blob(['﻿',html],{type:"application/msword"}),fileName()+".doc");}
 function saveJson(){triggerDownload(new Blob([JSON.stringify(collectRaw(),null,2)],{type:"application/json"}),fileName()+"_입력내용.json");}
 function collectRaw(){const o={};
-  ["beopmyeong","beopho","name","honor","isMonastic","gender","fatherName","motherName","fatherJob","motherJob","parentChar","siblingOrder","birth","birthPlace","growPlace","childChar","familyEduChar","joinYear","joinTemple","joinGuide","ordYear","beoprapInput","virtue","education","beophun","study","business","wonseong","jwawi","marryAge","marryDate","spouseName","spouseGrow","death","deathPlace","motto","closing"].forEach(id=>o[id]=$(id).value);
+  ["beopmyeong","beopho","name","honor","isMonastic","gender","fatherName","motherName","fatherJob","motherJob","parentChar","siblingOrder","birth","birthPlace","growPlace","childChar","familyEduChar","joinYear","joinTemple","joinGuide","ordYear","beoprapInput","virtue","education","study","business","wonseong","jwawi","marryAge","marryDate","spouseName","spouseGrow","death","deathPlace","motto","closing"].forEach(id=>o[id]=$(id).value);
   o.careers=[...document.querySelectorAll("#careerList .career-item")].map(it=>({yr:it.querySelector(".yr").value,d:it.querySelector(".desc").value}));
   o.children=[...document.querySelectorAll("#childList .child-item")].map(it=>({name:it.querySelector(".cname").value,rel:it.querySelector(".crel").value,job:it.querySelector(".cjob").value}));
   return o;}
@@ -553,7 +547,6 @@ function applyData(o){
   Object.keys(o).forEach(k=>{if($(k)!==null&&typeof o[k]==="string")$(k).value=o[k];});
   updateRole();
   if(o.honor!=null)$("honor").value=o.honor;
-  if(o.beophun!=null)$("beophun").value=o.beophun;
   $("careerList").innerHTML="";(o.careers||[]).forEach(c=>addCareer(c.yr,c.d));
   $("childList").innerHTML="";(o.children||[]).forEach(c=>addChild(c.name,c.rel,c.job));
   updateComputed();
