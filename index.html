@@ -125,7 +125,11 @@
       <legend>Ⅰ. 기본 정보</legend>
       <div class="row">
         <div class="fld"><label>법명</label><input id="beopmyeong" placeholder="법명"></div>
-        <div class="fld"><label>법호 (예: 大山 / 대산)</label><input id="beopho" placeholder="법호"></div>
+        <div class="fld"><label>법호 (남: ○산 / 여: ○타원)</label><input id="beopho" placeholder="예: 준산(남), 준타원(여)"></div>
+      </div>
+      <div class="row">
+        <div class="fld"><label>법호 받은 날짜</label><input id="beophoDate" placeholder="예: 원기 76년 8월 21일"></div>
+        <div class="fld"></div>
       </div>
       <div class="row">
         <div class="fld"><label>속명(성명)</label><input id="name" placeholder="속명"></div>
@@ -319,6 +323,7 @@ function collectData(){
   if(son&&dau)childStr=`${son}남 ${dau}녀`;else if(son)childStr=`${son}남`;else if(dau)childStr=`${dau}녀`;
   return {
     honor:$("honor").value.trim(),mon:$("isMonastic").value==="yes",
+    beopho:$("beopho").value.trim(),beophoDate:$("beophoDate").value.trim(),
     birth:fmtDate($("birth").value),death:fmtDate($("death").value),
     deathPlace:$("deathPlace").value.trim(),birthPlace:$("birthPlace").value.trim(),
     father:$("fatherName").value.trim(),mother:$("motherName").value.trim(),sib:$("siblingOrder").value.trim(),
@@ -383,6 +388,10 @@ function generate(){
     if(g.joinGuide)b+=`${g.joinGuide}의 연원으로 `;
     if(g.joinTemple)b+=`${g.joinTemple}에서 `;
     life.push({mid:b+"입교하시어 일원대도(一圓大道)에 귀의하셨으며,",end:b+"입교하시어 일원대도(一圓大道)에 귀의하셨습니다."});
+  }
+  if(g.beopho){
+    let b=g.beophoDate?`${g.beophoDate} `:"";
+    life.push({mid:b+`한결같은 신성을 인정받아 '${g.beopho}'이라는 법호를 받으시었으며,`,end:b+`한결같은 신성을 인정받아 '${g.beopho}'이라는 법호를 받으셨습니다.`});
   }
   if(g.mon){
     if(g.ordYear){
@@ -482,7 +491,7 @@ function buildPrompt(){
   const sesu=(by&&dy)?dy-by+1:null;
   const yr=s=>{const n=parseInt(s);return n?wongiLabel(n):"";};
   let D=[];
-  D.push(`- 법명: ${v('beopmyeong')||'-'} / 법호: ${v('beopho')||'-'} / 속명: ${v('name')||'-'} / 존칭: ${v('honor')||'-'}`);
+  D.push(`- 법명: ${v('beopmyeong')||'-'} / 법호: ${v('beopho')||'-'}${v('beophoDate')?'(수여: '+v('beophoDate')+')':''} / 속명: ${v('name')||'-'} / 존칭: ${v('honor')||'-'}`);
   D.push(`- 구분: ${g.mon?'전무출신(출가 교역자)':'재가 교도'}${v('gender')?' / 성별: '+v('gender'):''}`);
   D.push(`- 생년월일: ${g.birth?wongiLabel(by)+' '+g.birth.text:'-'}${v('birthPlace')?' / 출생지: '+v('birthPlace'):''}${v('growPlace')?' / 생장지: '+v('growPlace'):''}`);
   D.push(`- 부친: ${v('fatherName')||'-'}${v('fatherJob')?'(직업 '+v('fatherJob')+')':''} / 모친: ${v('motherName')||'-'}${v('motherJob')?'(직업 '+v('motherJob')+')':''}`);
@@ -565,7 +574,7 @@ function downloadDoc(){const inner=$("output").innerHTML;
   triggerDownload(new Blob(['﻿',html],{type:"application/msword"}),fileName()+".doc");}
 function saveJson(){triggerDownload(new Blob([JSON.stringify(collectRaw(),null,2)],{type:"application/json"}),fileName()+"_입력내용.json");}
 function collectRaw(){const o={};
-  ["beopmyeong","beopho","name","honor","isMonastic","gender","fatherName","motherName","fatherJob","motherJob","parentChar","siblingOrder","birth","birthPlace","growPlace","childChar","familyEduChar","joinYear","joinTemple","joinGuide","ordYear","beoprapInput","virtue","education","study","business","wonseong","jwawi","marryAge","marryDate","spouseName","spouseGrow","death","deathPlace","motto","closing"].forEach(id=>o[id]=$(id).value);
+  ["beopmyeong","beopho","beophoDate","name","honor","isMonastic","gender","fatherName","motherName","fatherJob","motherJob","parentChar","siblingOrder","birth","birthPlace","growPlace","childChar","familyEduChar","joinYear","joinTemple","joinGuide","ordYear","beoprapInput","virtue","education","study","business","wonseong","jwawi","marryAge","marryDate","spouseName","spouseGrow","death","deathPlace","motto","closing"].forEach(id=>o[id]=$(id).value);
   o.careers=[...document.querySelectorAll("#careerList .career-item")].map(it=>({yr:it.querySelector(".yr").value,d:it.querySelector(".desc").value}));
   o.children=[...document.querySelectorAll("#childList .child-item")].map(it=>({name:it.querySelector(".cname").value,rel:it.querySelector(".crel").value,job:it.querySelector(".cjob").value}));
   return o;}
