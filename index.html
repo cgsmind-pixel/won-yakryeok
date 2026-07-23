@@ -135,6 +135,7 @@
         <div class="fld"><label>속명(성명)</label><input id="name" placeholder="속명"></div>
         <div class="fld"><label>존칭</label>
           <select id="honor">
+            <option>님</option>
             <option>교선</option><option>교정</option><option>정사</option><option>원정사</option>
             <option>대원정사</option><option>대호법</option><option>대봉도</option><option>종사</option>
           </select>
@@ -312,6 +313,7 @@ $("isMonastic").addEventListener("change",updateRole);
 function subjectName(){
   const bh=$("beopho").value.trim(),bm=$("beopmyeong").value.trim(),nm=$("name").value.trim(),hon=$("honor").value.trim();
   let core=[bh,(bm||nm)].filter(Boolean).join(" ");if(!core)core=nm||bm||"고인";
+  if(hon==="님")return (core+"님").trim();
   return (core+(hon?" "+hon:"")).trim();
 }
 function collectData(){
@@ -491,7 +493,7 @@ function buildPrompt(){
   const sesu=(by&&dy)?dy-by+1:null;
   const yr=s=>{const n=parseInt(s);return n?wongiLabel(n):"";};
   let D=[];
-  D.push(`- 법명: ${v('beopmyeong')||'-'} / 법호: ${v('beopho')||'-'}${v('beophoDate')?'(수여: '+v('beophoDate')+')':''} / 속명: ${v('name')||'-'} / 존칭: ${v('honor')||'-'}`);
+  D.push(`- 법명: ${v('beopmyeong')||'-'} / 법호: ${v('beopho')||'-'}${v('beophoDate')?'(수여: '+v('beophoDate')+')':''} / 속명: ${v('name')||'-'} / 존칭: ${v('honor')==='님'?'없음(일반 교도 → 이름 뒤에 \'님\'을 붙여 호칭)':(v('honor')||'-')}`);
   D.push(`- 구분: ${g.mon?'전무출신(출가 교역자)':'재가 교도'}${v('gender')?' / 성별: '+v('gender'):''}`);
   D.push(`- 생년월일: ${g.birth?wongiLabel(by)+' '+g.birth.text:'-'}${v('birthPlace')?' / 출생지: '+v('birthPlace'):''}${v('growPlace')?' / 생장지: '+v('growPlace'):''}`);
   D.push(`- 부친: ${v('fatherName')||'-'}${v('fatherJob')?'(직업 '+v('fatherJob')+')':''} / 모친: ${v('motherName')||'-'}${v('motherJob')?'(직업 '+v('motherJob')+')':''}`);
